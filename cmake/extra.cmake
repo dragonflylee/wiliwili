@@ -58,8 +58,6 @@ if (APPLE AND PLATFORM_DESKTOP)
 
     if (NOT USE_SYSTEM_CURL)
         message(STATUS "compile curl")
-        set(CPR_FORCE_DARWINSSL_BACKEND OFF)
-        set(CPR_FORCE_OPENSSL_BACKEND ON)
         set(CPR_ENABLE_CURL_HTTP_ONLY ON)
         set(CURL_USE_LIBPSL OFF)
         set(CURL_USE_LIBSSH2 OFF)
