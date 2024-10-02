@@ -187,6 +187,8 @@ file(GLOB_RECURSE MAIN_SRC wiliwili/source/*.cpp)
 if (WIN32)
     configure_file("${CMAKE_SOURCE_DIR}/wiliwili/app_win32.rc.in" "${CMAKE_BINARY_DIR}/app_win32.rc")
     list(APPEND MAIN_SRC ${CMAKE_BINARY_DIR}/app_win32.rc)
+elseif (APPLE)
+    list(APPEND MAIN_SRC ${CMAKE_SOURCE_DIR}/scripts/mac/AppIcon.icns)
 elseif (PLATFORM_SWITCH)
     # System service initialization functions required for libnx
     list(APPEND MAIN_SRC ${BOREALIS_LIBRARY}/lib/platforms/switch/switch_wrapper.c)
@@ -222,19 +224,28 @@ if (PLATFORM_DESKTOP)
     endif ()
 
     if (APPLE)
-        if (MAC_DOWNLOAD_DYLIB)
-            set(bundle_args1 "-nb")
-            set(bundle_args2 "${CMAKE_BINARY_DIR}/deps/lib")
-        else ()
-            # Use system provided dylib
-            set(bundle_args1 "-b")
-            set(bundle_args2 "system")
-        endif ()
-        add_custom_target(
-            ${PROJECT_NAME}.app
-            COMMAND "bash" "${CMAKE_SOURCE_DIR}/scripts/build_mac.sh" "${bundle_args1}" "${bundle_args2}" "${APP_VERSION}"
+        set_target_properties(${PROJECT_NAME} PROPERTIES
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME}
+            MACOSX_BUNDLE_BUNDLE_VERSION "${APP_VERSION}"
+            MACOSX_BUNDLE_LONG_VERSION_STRING "${APP_VERSION}"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}"
+            MACOSX_BUNDLE_ICON_FILE "AppIcon.icns"
+            MACOSX_BUNDLE_COPYRIGHT "Copyright 2024 ${PROJECT_AUTHOR}"
+            RESOURCE "${CMAKE_SOURCE_DIR}/scripts/mac/AppIcon.icns"
         )
-        add_dependencies(${PROJECT_NAME}.app ${PROJECT_NAME})
+
+        if (CMAKE_PREFIX_PATH)
+            set(BUNDLE_ARG -s ${CMAKE_PREFIX_PATH}/lib)
+        endif ()
+
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} Resources/resources
+            COMMAND otool -L MacOS/${PROJECT_NAME}
+            COMMAND dylibbundler -cd -ns -b ${BUNDLE_ARG} -x MacOS/${PROJECT_NAME} -d Frameworks/ -p "@executable_path/../Frameworks/"
+            COMMAND codesign --sign - --force Frameworks/*
+            WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.app/Contents"
+        )
     elseif (UNIX AND INSTALL)
         set(icon_dirs 16x16 24x24 32x32 48x48 64x64 128x128 256x256)
         linux_install(
