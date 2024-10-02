@@ -31,10 +31,12 @@ cd /tmp/ffmpeg
   --extra-ldflags='-L/usr/lib/aarch64-linux-gnu/tegra' \
   --extra-libs='-lpthread -lm -lnvbuf_utils -lv4l2' \
   --ld=g++ --enable-nonfree --enable-openssl --enable-libv4l2 --enable-nvv4l2 \
-  --enable-opengl --disable-doc --enable-asm --enable-neon --disable-debug \
-  --enable-libass --enable-demuxer=hls --disable-muxers --disable-avdevice \
-  --disable-protocols --enable-protocol='file,http,tcp,rtmp,hls,https,tls' \
-  --disable-encoders --disable-programs --enable-rpath
+  --enable-opengl --disable-doc --enable-asm --enable-neon --enable-rpath \
+  --disable-muxers --disable-demuxers --enable-demuxer=mov,flv,dash,matroska,hls \
+  --disable-encoders --disable-decoders --enable-decoder=aac,h264,hevc \
+  --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy \
+  --disable-filters --enable-filter=hflip,vflip,transpose --disable-avdevice \
+  --disable-programs --disable-debug
 make -j$(nproc)
 make install
 
@@ -48,7 +50,7 @@ cd /opt
 mkdir -p /tmp/deb/DEBIAN /tmp/deb/usr /tmp/deb/opt/wiliwili/lib
 
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH -DPLATFORM_DESKTOP=ON \
-  -DUSE_SYSTEM_CURL=ON -DUSE_SYSTEM_GLFW=ON -DHOMEBREW_MPV=$CMAKE_PREFIX_PATH \
+  -DUSE_SYSTEM_CURL=ON -DUSE_SYSTEM_GLFW=ON -DHOMEBREW_MPV=$CMAKE_PREFIX_PATH -DVERSION_BUILD=$VERSION_BUILD \
   -DINSTALL=ON -DCUSTOM_RESOURCES_DIR=$CMAKE_PREFIX_PATH -DCMAKE_INSTALL_RPATH=$CMAKE_PREFIX_PATH/lib
 cmake --build build -j$(nproc)
 DESTDIR="/tmp/deb" cmake --install build
@@ -57,4 +59,4 @@ cp -d /opt/wiliwili/lib/*.so.* /tmp/deb/opt/wiliwili/lib
 mv /tmp/deb/opt/wiliwili/share /tmp/deb/usr
 sed -i 's|Exec=wiliwili|Exec=/opt/wiliwili/bin/wiliwili|' /tmp/deb/usr/share/applications/cn.xfangfang.wiliwili.desktop
 cp scripts/deb/switchroot-bionic/control /tmp/deb/DEBIAN
-dpkg --build /tmp/deb wiliwili-Linux-aarch64-switchroot-ubuntu.deb
+dpkg --build /tmp/deb wiliwili-Linux-switchroot-ubuntu-$(uname -m).deb

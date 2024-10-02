@@ -136,12 +136,11 @@ modules:
         buildsystem: meson
         config-opts:
           - -Dglslang=disabled
-          - -Dd3d11=disabled
+          - -Ddovi=enabled
           - -Ddemos=false
         sources:
           - type: git
-            url: https://github.com/haasn/libplacebo.git
-            commit: 1fd3c7bde7b943fe8985c893310b5269a09b46c5
+            url: https://code.videolan.org/videolan/libplacebo.git
             tag: v7.349.0
             x-checker-data:
               type: git
@@ -160,27 +159,28 @@ modules:
           - --enable-gpl
           - --disable-doc
           - --disable-programs
+          - --disable-protocols
           - --disable-encoders
+          - --disable-decoders
           - --disable-muxers
-          - --enable-encoder=png
+          - --disable-demuxers
+          - --disable-filters
+          - --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy
+          - --enable-decoder==flac,aac,opus,mp3,h264,hevc,libdav1d,hdr,srt,eac3
+          - --enable-demuxer=mov,flv,hls
+          - --enable-filter=hflip,vflip,transpose
           - --enable-libdav1d
           - --enable-libfontconfig
           - --enable-libfreetype
-          - --enable-libopus
-          - --enable-librsvg
-          - --enable-libvpx
-          - --enable-libmp3lame
-
         sources:
-          - type: git
-            url: https://github.com/FFmpeg/FFmpeg.git
-            mirror-urls:
-              - https://git.ffmpeg.org/ffmpeg.git
-            commit: b08d7969c550a804a59511c7b83f2dd8cc0499b8
-            tag: n7.1
+          - type: archive
+            url: https://ffmpeg.org/releases/ffmpeg-7.1.tar.xz
+            sha256: 40973d44970dbc83ef302b0609f2e74982be2d85916dd2ee7472d30678a7abe6
             x-checker-data:
-              type: git
-              tag-pattern: ^n([\d.]{3,7})$
+              type: anitya
+              project-id: 1560
+              stable-only: true
+              url-template: https://ffmpeg.org/releases/ffmpeg-$version.tar.xz
 
   - name: wiliwili
     buildsystem: cmake-ninja
@@ -192,7 +192,7 @@ modules:
       - -DGLFW_BUILD_X11=ON
       - -DUSE_SYSTEM_CURL=ON
       - -DUSE_GLES2=OFF
-      - -DBRLS_UNITY_BUILD=ON
+      - -DBRLS_UNITY_BUILD=OFF
       - -DCMAKE_UNITY_BUILD_BATCH_SIZE=16
     builddir: true
     sources:

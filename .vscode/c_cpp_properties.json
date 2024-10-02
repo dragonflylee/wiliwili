@@ -1,0 +1,48 @@
+{
+    "configurations": [
+        {
+            "name": "Switch",
+            "includePath": [
+                "${workspaceFolder}/build/library/cpr/cpr_generated_includes",
+                "${workspaceFolder}/wiliwili/include",
+                "${workspaceFolder}/wiliwili/include/api",
+                "${workspaceFolder}/library/**",
+                "${env:DEVKITPRO}/libnx/include",
+                "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
+                "${env:DEVKITPRO}/portlibs/switch/include/**"
+            ],
+            "defines": [
+                "__SWITCH__",
+                "USE_WEBP",
+                "YG_ENABLE_EVENTS",
+                "BOREALIS_USE_DEKO3D",
+                "BRLS_RESOURCES=\"resources\""
+            ],
+            "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-arm64"
+        },
+        {
+            "name": "MinGW64",
+            "includePath": [
+                "${workspaceFolder}/build/library/cpr/cpr_generated_includes",
+                "${workspaceFolder}/wiliwili/include",
+                "${workspaceFolder}/wiliwili/include/api",
+                "${workspaceFolder}/library/**",
+                "C:/MinGW64/include",
+                "C:/MinGW64/x86_64-w64-mingw32/include/**"
+            ],
+            "defines": [
+                "BOREALIS_USE_D3D11",
+                "YG_ENABLE_EVENTS",
+                "BRLS_RESOURCES=\"resources\""
+            ],
+            "compilerPath": "C:/MinGW64/bin/gcc.exe",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "windows-gcc-x64"
+        }
+    ],
+    "version": 4
+}

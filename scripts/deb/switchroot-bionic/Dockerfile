@@ -2,7 +2,7 @@
 # docker build --network host -t build:switchroot-bionic .
 # docker run --rm --name switchroot --network host -v $PWD:/opt -w /opt -it build:switchroot-bionic bash -l
 
-FROM arm64v8/ubuntu:18.04
+FROM arm64v8/ubuntu:bionic
 RUN apt-get update && apt-get install -y gnupg wget \
   && wget -qO- https://newrepo.switchroot.org/pubkey | gpg --dearmor -o /etc/apt/trusted.gpg.d/switchroot.gpg \
   && echo > /etc/apt/sources.list.d/99-switchroot-newrepo.list "deb https://newrepo.switchroot.org/ switchroot unstable" \
@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y gnupg wget \
   && apt-get remove -y gnupg && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /usr/share/man/*
 
 RUN apt-get update && apt-get install -y --no-install-recommends xorg-dev libdbus-1-dev libssl-dev \
-    libass-dev libwebp-dev libv4l-dev libpulse-dev libuchardet-dev nvidia-l4t-jetson-multimedia-api \
+    libluajit-5.1-dev libass-dev libwebp-dev libv4l-dev libpulse-dev libuchardet-dev nvidia-l4t-jetson-multimedia-api \
   && rm -rf /var/lib/apt/lists/* /usr/share/man/* /usr/src/tensorrt/*
 
 RUN adduser --gecos '' --disabled-password ubuntu \
