@@ -8,9 +8,10 @@ export LD_LIBRARY_PATH=$CMAKE_PREFIX_PATH/lib
 
 wget -qO- https://curl.se/download/curl-8.7.1.tar.xz | tar Jxf - -C /tmp
 wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.4.3/dav1d-1.4.3.tar.xz | tar Jxf - -C /tmp
+git clone https://code.videolan.org/videolan/libplacebo.git -b v6.338.2 --depth 1 --recurse-submodules /tmp/libplacebo
 wget -qO- https://github.com/FFmpeg/nv-codec-headers/archive/n12.2.72.0.tar.gz | tar zxf - -C /tmp
 wget -qO- https://ffmpeg.org/releases/ffmpeg-7.1.tar.xz | tar Jxf - -C /tmp
-wget -qO- https://github.com/mpv-player/mpv/archive/v0.36.0.tar.gz | tar zxf - -C /tmp
+wget -qO- https://github.com/mpv-player/mpv/archive/v0.39.0.tar.gz | tar zxf - -C /tmp
 
 cd /opt/library/borealis/library/lib/extern/glfw
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
@@ -47,8 +48,13 @@ cd /tmp/ffmpeg-7.1
 make -j$(nproc)
 make install
 
-cd /tmp/mpv-0.36.0
-patch -Nbp1 -i /opt/scripts/deb/mpv.patch
+cd /tmp/libplacebo
+meson setup build --prefix=$CMAKE_PREFIX_PATH --libdir=lib --buildtype=release --default-library=shared \
+  -Ddebug=false  -Ddemos=false -Dtests=false -Dlcms=disabled -Dvulkan=disabled
+meson compile -C build
+meson install -C build
+
+cd /tmp/mpv-0.39.0
 meson setup build --prefix=$CMAKE_PREFIX_PATH --libdir=lib --buildtype=release --default-library=shared \
   -Dlibmpv=true -Dcplayer=false -Dtests=false -Ddebug=false -Dlibarchive=disabled -Dlua=enabled
 meson compile -C build

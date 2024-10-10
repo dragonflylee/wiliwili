@@ -155,7 +155,7 @@ jobs:
             ${MINGW_PACKAGE_PREFIX}-gcc \
             ${MINGW_PACKAGE_PREFIX}-ninja unzip
 
-          curl -LO https://github.com/dragonflylee/mingw-mpv/releases/download/mingw/${MINGW_PACKAGE_PREFIX}-mpv-0.36.0-6-any.pkg.tar.zst
+          curl -LO https://github.com/dragonflylee/mingw-mpv/releases/download/mingw/${MINGW_PACKAGE_PREFIX}-mpv-0.39.0-4-any.pkg.tar.zst
           pacman -U --noconfirm *.pkg.tar.zst
 
           curl -LO https://github.com/rainers/cv2pdb/releases/download/v0.52/cv2pdb-0.52.zip
@@ -324,7 +324,6 @@ jobs:
       matrix:
         include:
           - { arch: IntelChip, name: IntelChip }
-          - { arch: IntelChip_Old, name: IntelChip_10.11 }
           - { arch: AppleSilicon, name: AppleSilicon }
       # Don't fail the whole workflow if one architecture fails
       fail-fast: false
@@ -338,7 +337,7 @@ jobs:
       - name: install deps
         run: |
           brew install create-dmg dylibbundler
-          curl -sSL https://github.com/dragonflylee/mingw-mpv/releases/download/macos-dylib/dylib-ffmpeg7-mpv36-${{ matrix.arch }}.tar.gz | tar zxf - -C /tmp
+          curl -sSL https://github.com/dragonflylee/mingw-mpv/releases/download/macos-dylib/dylib-ffmpeg7-mpv39-${{ matrix.arch }}.tar.gz | tar zxf - -C /tmp
 
       - name: SSH connection to Actions
         uses: P3TERX/ssh2actions@v1.0.0
