@@ -14,7 +14,7 @@ PKGS=(
     "switch-libass-0.17.3-1-any.pkg.tar.zst"
     "switch-dav1d-1.4.3-1-any.pkg.tar.zst"
     "switch-ffmpeg-7.1-1-any.pkg.tar.zst"
-    "switch-libmpv-deko3d-0.36.0-6-any.pkg.tar.zst"
+    "switch-libmpv-deko3d-0.39.0-4-any.pkg.tar.zst"
     "switch-nspmini-main-1-any.pkg.tar.zst"
     "hacBrewPack-3.05-1-any.pkg.tar.zst"
 )
