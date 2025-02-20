@@ -304,7 +304,7 @@ void VideoDetail::requestSeasonVideoUrl(const std::string& bvid, uint64_t cid, b
     BILI::get_season_url(
         cid, defaultQuality,
         [ASYNC_TOKEN](const bilibili::VideoUrlResult& result) {
-            brls::sync([ASYNC_TOKEN, result]() {
+            brls::async([ASYNC_TOKEN, result]() {
                 ASYNC_RELEASE
                 brls::Logger::debug("BILI::get_video_url");
                 this->videoUrlResult = result;

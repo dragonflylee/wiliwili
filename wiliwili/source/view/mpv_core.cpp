@@ -224,7 +224,7 @@ void MPVCore::on_update(void *self) {
 }
 
 void MPVCore::on_wakeup(void *self) {
-    brls::sync([]() { MPVCore::instance().eventMainLoop(); });
+    brls::async([]() { MPVCore::instance().eventMainLoop(); });
 }
 
 #if defined(MPV_BUNDLE_DLL)
@@ -497,6 +497,9 @@ void MPVCore::init() {
     mpvRenderContextSetUpdateCallback(mpv_context, on_update, this);
 
     focusSubscription = brls::Application::getWindowFocusChangedEvent()->subscribe([this](bool focus) {
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+        mpvSetOptionString(mpv, "vo", focus ? "libmpv" : "null");
+#else
         static bool playing = false;
         static std::chrono::system_clock::time_point sleepTime{};
         if (focus) {
@@ -515,6 +518,7 @@ void MPVCore::init() {
             // do not automatically play video
             AUTO_PLAY = false;
         }
+#endif
     });
 
     brls::Application::getExitEvent()->subscribe([]() { disableDimming(false); });
