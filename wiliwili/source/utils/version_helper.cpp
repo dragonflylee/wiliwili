@@ -10,12 +10,19 @@
 #include <borealis/core/application.hpp>
 #include <borealis/core/thread.hpp>
 #include <borealis/views/dialog.hpp>
-#include <borealis/platforms/desktop/steam_deck.hpp>
-
 #include "utils/config_helper.hpp"
 #include "utils/dialog_helper.hpp"
 #include "api/bilibili/util/http.hpp"
 #include "fragment/latest_update.hpp"
+#ifdef __SWITCH__
+#include <switch.h>
+#elif defined(__PSV__)
+#include <psp2/vshbridge.h>
+#elif defined(__APPLE__)
+#include <sys/sysctl.h>
+#elif defined(__linux__)
+#include <borealis/platforms/desktop/steam_deck.hpp>
+#endif
 
 using namespace brls::literals;
 
@@ -67,6 +74,50 @@ std::string APPVersion::getPlatform() {
 #else
     return "Unknown";
 #endif
+}
+
+std::string APPVersion::getDeviceName() {
+#ifdef __SWITCH__
+    SetSysProductModel model;
+    if (setsysGetProductModel(&model) >= 0) {
+        switch (model) {
+            case SetSysProductModel_Iowa:
+                return "Nintendo Switch Mariko";
+            case SetSysProductModel_Hoag:
+                return "Nintendo Switch Lite";
+            case SetSysProductModel_Aula:
+                return "Nintendo Switch OLED";
+        }
+        return "Nintendo Switch";
+    }    
+#elif defined(__PSV__)
+    if (vshSblAimgrIsGenuineDolce()) {
+        return "PSTV";
+    } else if (vshSblAimgrIsGenuineVITA()) {
+        char cid[0x20];
+        if (_vshSblAimgrGetConsoleId(cid) >= 0) {
+            if (cid[7] == 0x14 || cid[7] == 0x18) {
+                return "PSVita Slim";
+            }
+        }
+        return "PSVita";
+    }
+#elif defined(_WIN32)
+    DWORD bufsize = MAX_PATH;
+    std::vector<WCHAR> buf(bufsize);
+    if (GetComputerNameW(buf.data(), &bufsize)) {
+        std::string name(bufsize * 3, '\0');
+        WideCharToMultiByte(CP_UTF8, 0, buf.data(), bufsize, name.data(), name.size(), nullptr, nullptr);
+        return name.data();
+    }
+#elif defined(__APPLE__)
+    char model[256];
+    size_t len = sizeof(model);
+    if (sysctlbyname("hw.model", model, &len, nullptr, 0) >= 0) {
+        return model;
+    }
+#endif
+    return this->getPlatform();
 }
 
 std::string APPVersion::getPackageName() { return std::string{STR(BUILD_PACKAGE_NAME)}; }
