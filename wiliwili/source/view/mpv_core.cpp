@@ -822,7 +822,7 @@ void MPVCore::draw(brls::Rect area, float alpha) {
     }
 #elif defined(MPV_NO_FB) || defined(BOREALIS_USE_DEKO3D) || defined(BOREALIS_USE_D3D11)
     // 只在非透明时绘制视频，可以避免退出页面时视频画面残留
-    if (alpha >= 1) {
+    if (alpha >= 1 && !video_stopped) {
 #ifdef BOREALIS_USE_DEKO3D
         static auto videoContext = (brls::SwitchVideoContext *)brls::Application::getPlatform()->getVideoContext();
         mpv_fbo.tex              = videoContext->getFramebuffer();
