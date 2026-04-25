@@ -48,6 +48,7 @@ public:
     static void openActivity(const std::string& id);
 };
 
-#if defined(__linux__) || defined(_WIN32) || defined(__APPLE__)
+#if defined(IOS) || defined(ANDROID) || defined(TRIMUI)
+#elif defined(__linux__) || defined(_WIN32) || defined(__APPLE__)
 #define ALLOW_FULLSCREEN
 #endif
