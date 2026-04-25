@@ -170,7 +170,13 @@ std::unordered_map<SettingItem, ProgramOption> ProgramConfig::SETTING_MAP = {
     {SettingItem::SHORTCUT_VIDEO_PAUSE, {"shortcut_video_pause", {}, {}, 0}},
 
     /// bool
-    {SettingItem::APP_SWAP_ABXY, {"app_swap_abxy", {}, {}, 0}},
+    {SettingItem::APP_SWAP_ABXY, {"app_swap_abxy", {}, {},
+#if defined(TRIMUI)
+     1
+#else
+     0
+#endif
+    }},
     {SettingItem::GAMEPAD_VIBRATION, {"gamepad_vibration", {}, {}, 1}},
 #if defined(IOS) || defined(__PSV__)
     {SettingItem::HIDE_BOTTOM_BAR, {"hide_bottom_bar", {}, {}, 1}},
@@ -691,7 +697,7 @@ void ProgramConfig::load() {
         brls::Platform::APP_LOCALE_DEFAULT = brls::LOCALE_ZH_HANS;
 #endif
     }
-#ifdef IOS
+#if defined(IOS) || defined(ANDROID) || defined(TRIMUI)
 #elif defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
     // 初始化上一次窗口位置
     loadHomeWindowState();
@@ -821,7 +827,7 @@ void ProgramConfig::load() {
         });
     });
 
-#ifdef IOS
+#if defined(IOS) || defined(ANDROID) || defined(TRIMUI)
 #elif defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
     // 窗口将要关闭时, 保存窗口状态配置
     brls::Application::getExitEvent()->subscribe([this]() { saveHomeWindowState(); });
@@ -1077,7 +1083,7 @@ void ProgramConfig::init() {
         // 自定义字体不存在，使用内置字体
 #if defined(__PSV__) || defined(PS4)
         brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_ps.ttf");
-#else
+#elif !defined(TRIMUI)
         std::string icon = getSettingItem(SettingItem::KEYMAP, std::string{"xbox"});
         if (icon == "xbox") {
             brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_xbox.ttf");

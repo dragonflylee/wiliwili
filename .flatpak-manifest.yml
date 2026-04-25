@@ -34,7 +34,6 @@ modules:
     buildsystem: meson
     config-opts:
       - -Dlibmpv=true
-      - -Dlua=enabled
       - -Ddebug=false
       - -Dbuild-date=false
       - -Dcplayer=false
@@ -42,8 +41,8 @@ modules:
       - -Dvulkan=disabled
     sources:
       - type: archive
-        url: https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz
-        sha256: ee21092a5ee427353392360929dc64645c54479aefdb5babc5cfbb5fad626209
+        url: https://github.com/mpv-player/mpv/archive/v0.42.0.tar.gz
+        sha256: bcfebbfa2b65a6d88dc97ea18117831072373e38b5785a2afb874ed4df5070dd
         x-checker-data:
           type: anitya
           project-id: 5348
@@ -69,8 +68,8 @@ modules:
         buildsystem: meson
         sources:
           - type: archive
-            url: https://gitlab.freedesktop.org/emersion/libdisplay-info/-/releases/0.3.0/downloads/libdisplay-info-0.3.0.tar.xz
-            sha256: 6ae77cd937f9cf7d1321d35c116062c4911e8447010a6a713ac4286f7a9d5987
+            url: https://gitlab.freedesktop.org/emersion/libdisplay-info/-/releases/0.4.0/downloads/libdisplay-info-0.4.0.tar.xz
+            sha256: 43b180baa143e2035654759d84e2b2f5ee77d5fe817c423838c7fe59c0d68459
         modules:
           - name: hwdata
             cleanup:
@@ -79,45 +78,21 @@ modules:
               - --disable-blacklist
             sources:
               - type: archive
-                url: https://github.com/vcrhonek/hwdata/archive/v0.405.tar.gz
-                sha256: 13605519e72e46aa13d5eede1901a07a6c83cd25ef866a86e7458047b5c81ce5
-
-      - name: luajit
-        no-autogen: true
-        cleanup:
-          - /bin
-          - /include
-          - /lib/pkgconfig
-          - /share/man
-        sources:
-          - type: git
-            url: https://github.com/LuaJIT/LuaJIT.git
-            mirror-urls:
-              - https://luajit.org/git/luajit.git
-            disable-shallow-clone: true
-            commit: 97813fb924edf822455f91a5fbbdfdb349e5984f
-            x-checker-data:
-              type: json
-              url: https://api.github.com/repos/LuaJIT/LuaJIT/commits
-              commit-query: first( .[].sha )
-              version-query: first( .[].sha )
-              timestamp-query: first( .[].commit.committer.date )
-          - type: shell
-            commands:
-              - sed -i 's|/usr/local|/app|' ./Makefile
+                url: https://github.com/vcrhonek/hwdata/archive/v0.413.tar.gz
+                sha256: 5a71ab7a48c668ef912fcfdbec046949087019f8dd7fb967445d36fbeb778350
 
       - name: libass
         config-opts:
           - --disable-static
         sources:
           - type: archive
-            url: https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.gz
-            sha256: a886b3b80867f437bc55cff3280a652bfa0d37b43d2aff39ddf3c4f288b8c5a8
+            url: https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz
+            sha256: 2dca25c0e0c837ddf00b52011b3f82cac1e4ddd3ad018227806b0c2288864acc
             x-checker-data:
               type: anitya
               project-id: 1560
               stable-only: true
-              url-template: https://github.com/libass/libass/releases/download/$version/libass-$version.tar.gz
+              url-template: https://github.com/libass/libass/releases/download/$version/libass-$version.tar.xz
 
       - name: uchardet
         buildsystem: cmake-ninja
@@ -144,8 +119,8 @@ modules:
         sources:
           - type: git
             url: https://github.com/haasn/libplacebo.git
-            commit: cee9b076f2c63104ccfd497fa79c39a867293ec4
-            tag: v7.360.1
+            commit: 275f7dea27924cdd34ab2e6c20e448b6bc4fab65
+            tag: v7.387.0
             x-checker-data:
               type: git
               tag-pattern: ^v([\d.]+)$
@@ -161,7 +136,7 @@ modules:
       - -DUSE_SYSTEM_CURL=ON
       - -DUSE_GLES2=OFF
       - -DUSE_EGL=ON
-      - -DBRLS_UNITY_BUILD=ON
+      - -DBRLS_UNITY_BUILD=OFF
       - -DCMAKE_UNITY_BUILD_BATCH_SIZE=16
     builddir: true
     sources:

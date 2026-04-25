@@ -497,7 +497,7 @@ void SettingActivity::onContentAvailable() {
                           });
 
     /// App Keymap
-#if !defined(__SWITCH__) && !defined(__PSV__) && !defined(PS4)
+#if !defined(__SWITCH__) && !defined(__PSV__) && !defined(PS4) && !defined(TRIMUI)
     static int keyIndex = conf.getStringOptionIndex(SettingItem::KEYMAP);
     selectorKeymap->init("wiliwili/setting/app/others/keymap/header"_i18n,
                          {
