@@ -2,6 +2,7 @@ name: Build wiliwili
 
 on:
   push:
+    branches: ["dev"]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -25,99 +26,9 @@ on:
         description: 'Version'
         required: false
         default: '0.0.0'
-      disable_unity_build:
-        description: 'Disable unity build'
-        required: false
-        default: 'false'
+
 jobs:
-  version:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.info.outputs.version }}
-      standard_version: ${{ steps.info.outputs.standard_version }}
-      DIST_EXE: ${{ steps.info.outputs.DIST_EXE }}
-      DIST_UWP: ${{ steps.info.outputs.DIST_UWP }}
-      DIST_NRO: ${{ steps.info.outputs.DIST_NRO }}
-      DIST_PS4: ${{ steps.info.outputs.DIST_PS4 }}
-      DIST_DMG_PREFIX: ${{ steps.info.outputs.DIST_DMG_PREFIX }}
-      DIST_INTEL_DMG: ${{ steps.info.outputs.DIST_INTEL_DMG }}
-      DIST_INTEL_OLD_DMG: ${{ steps.info.outputs.DIST_INTEL_OLD_DMG }}
-      DIST_ARM_DMG: ${{ steps.info.outputs.DIST_ARM_DMG }}
-      DIST_UNIVERSAL_DMG: ${{ steps.info.outputs.DIST_UNIVERSAL_DMG }}
-      DIST_FLATPAK_X86_64: ${{ steps.info.outputs.DIST_FLATPAK_X86_64 }}
-      DIST_FLATPAK_AARCH64_GL: ${{ steps.info.outputs.DIST_FLATPAK_AARCH64_GL }}
-      DIST_FLATPAK_AARCH64_GLES2: ${{ steps.info.outputs.DIST_FLATPAK_AARCH64_GLES2 }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Debug version
-        run: |
-          export VERSION=`git rev-parse --short HEAD`
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-
-      - name: Release version
-        if: github.event.inputs.release == 'true' && github.event.inputs.release != 'false' && !cancelled()
-        run: |
-          export VERSION="${{ github.event.inputs.version }}"
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-
-      - name: Version
-        id: info
-        env:
-          VERSION: ${{ env.VERSION }}
-        run: |
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "DIST_EXE=wiliwili-Windows-${VERSION}" >> $GITHUB_OUTPUT
-          echo "DIST_UWP=wiliwili-windows-x64-uwp-${VERSION}" >> $GITHUB_OUTPUT
-          echo "DIST_NRO=wiliwili-NintendoSwitch-${VERSION}" >> $GITHUB_OUTPUT
-          echo "DIST_PS4=wiliwili-PS4-${VERSION}" >> $GITHUB_OUTPUT
-          echo "DIST_DMG_PREFIX=wiliwili-macOS" >> $GITHUB_OUTPUT
-          echo "DIST_INTEL_DMG=wiliwili-macOS-IntelChip-${VERSION}" >> $GITHUB_OUTPUT
-          echo "DIST_INTEL_OLD_DMG=wiliwili-macOS-IntelChip_10.11-${VERSION}" >> $GITHUB_OUTPUT
-          echo "DIST_ARM_DMG=wiliwili-macOS-AppleSilicon-${VERSION}" >> $GITHUB_OUTPUT
-          echo "DIST_UNIVERSAL_DMG=wiliwili-macOS-Universal-${VERSION}" >> $GITHUB_OUTPUT
-          echo "DIST_FLATPAK_X86_64=wiliwili-Linux-${VERSION}-x86_64" >> $GITHUB_OUTPUT
-          echo "DIST_FLATPAK_AARCH64_GL=wiliwili-Linux-${VERSION}-gl-aarch64" >> $GITHUB_OUTPUT
-          echo "DIST_FLATPAK_AARCH64_GLES2=wiliwili-Linux-${VERSION}-gles2-aarch64" >> $GITHUB_OUTPUT
-          echo $VERSION
-          echo "${{  github.event.inputs.version }}"
-
-
-  release:
-    needs: [ build-win, build-switch, build-macos, build-flatpak, version ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v8
-
-      - name: Package exe
-        if: github.event.inputs.release == 'true' && !cancelled()
-        run: |
-          tree
-          zip -r -9 ${{ needs.version.outputs.DIST_EXE }}-x86_64.zip ${{ needs.version.outputs.DIST_EXE }}-d3d-x86_64
-          zip -r -9 ${{ needs.version.outputs.DIST_EXE }}-x86.zip ${{ needs.version.outputs.DIST_EXE }}-d3d-x86
-
-      - name: Upload Release
-        if: github.event.inputs.release == 'true' && !cancelled()
-        uses: ncipollo/release-action@v1
-        with:
-          name: wiliwili ${{  github.event.inputs.version }}
-          tag: ${{  github.event.inputs.version }}
-          omitBodyDuringUpdate: true
-          body: This release is built by github-action.
-          token: ${{ secrets.GITHUB_TOKEN }}
-          allowUpdates: true
-          artifacts: >
-            ${{ needs.version.outputs.DIST_EXE }}-x86_64.zip
-            ${{ needs.version.outputs.DIST_EXE }}-x86.zip
-            ${{ needs.version.outputs.DIST_NRO }}/${{ needs.version.outputs.DIST_NRO }}.tar.gz
-            ${{ needs.version.outputs.DIST_INTEL_DMG }}/${{ needs.version.outputs.DIST_INTEL_DMG }}.dmg
-            ${{ needs.version.outputs.DIST_ARM_DMG }}/${{ needs.version.outputs.DIST_ARM_DMG }}.dmg
-            ${{ needs.version.outputs.DIST_UNIVERSAL_DMG }}/${{ needs.version.outputs.DIST_UNIVERSAL_DMG }}.dmg
-            ${{ needs.version.outputs.DIST_FLATPAK_X86_64 }}/${{ needs.version.outputs.DIST_FLATPAK_X86_64 }}.flatpak
-
   build-win:
-    needs: [ version ]
     strategy:
       fail-fast: false
       matrix:
@@ -151,10 +62,11 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: recursive
-          fetch-depth: 0
+          fetch-depth: 2
+          fetch-tags: true
       - name: Install dependency
         run: |
-          curl -LO https://github.com/xfangfang/wiliwili/releases/download/v0.1.0/${MINGW_PACKAGE_PREFIX}-mpv-0.40.0-2-any.pkg.tar.zst
+          curl -LO https://github.com/dragonflylee/mpv-build/releases/download/mingw-package/${MINGW_PACKAGE_PREFIX}-mpv-0.41.0-3-any.pkg.tar.zst
           pacman -U --noconfirm *.pkg.tar.zst
 
           curl -sLO https://github.com/rainers/cv2pdb/releases/download/v0.54/cv2pdb-0.54.zip
@@ -216,21 +128,20 @@ jobs:
             -DWIN32_TERMINAL=OFF \
             -DUSE_SYSTEM_CURL=ON \
             -DUSE_LIBROMFS=ON \
-            -DBRLS_UNITY_BUILD=${{ github.event.inputs.disable_unity_build == 'true' && 'OFF' || 'ON' }} \
-            -DCMAKE_UNITY_BUILD_BATCH_SIZE=20 \
+            -DBRLS_UNITY_BUILD=OFF \
             -DZLIB_USE_STATIC_LIBS=ON \
-            -DMPV_BUNDLE_DLL=${MINGW_PREFIX}/bin/libmpv-2.dll \
             -DVERSION_BUILD=${{ github.run_number }}
           cmake --build build
           cv2pdb64 build/wiliwili.exe
-          cp -a README.md build
+          cp -a README.md ${MINGW_PREFIX}/bin/libmpv-2.dll build
       - name: Upload dist
         uses: actions/upload-artifact@v6
         with:
-          name: ${{ needs.version.outputs.DIST_EXE }}-${{ matrix.driver }}-${{ matrix.arch }}
+          name: wiliwili-Windows-${{ matrix.driver }}-${{ matrix.arch }}-${{ github.run_number }}
           path: |
             build/wiliwili.exe
             build/wiliwili.pdb
+            build/libmpv-2.dll
             build/README.md
 
 #  build-win-uwp:
@@ -271,7 +182,6 @@ jobs:
 #            build/key.pdf
 
   build-switch:
-    needs: [ version ]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -285,12 +195,8 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: recursive
-          fetch-depth: 0
-
-      - name: Disable unity build
-        if: ${{ github.event.inputs.disable_unity_build == 'true' }}
-        run: |
-          sed -i 's/BRLS_UNITY_BUILD=ON/BRLS_UNITY_BUILD=OFF/' scripts/build_switch${{ matrix.shuffix }}.sh
+          fetch-depth: 2
+          fetch-tags: true
 
       - name: Build Nro
         run: |
@@ -299,18 +205,18 @@ jobs:
       - name: Upload dist
         uses: actions/upload-artifact@v6
         with:
-          name: ${{ needs.version.outputs.DIST_NRO }}-${{ matrix.driver }}
+          name: wiliwili-NintendoSwitch-${{ matrix.driver }}-${{ github.run_number }}
           path: "cmake-build-switch/wiliwili.nro"
 
   build-ps4:
-    needs: [ version ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           submodules: recursive
-          fetch-depth: 0
+          fetch-depth: 2
+          fetch-tags: true
 
       - name: Build
         run: |
@@ -319,32 +225,27 @@ jobs:
              cmake -B cmake-build-ps4 -DPLATFORM_PS4=ON \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DMPV_NO_FB=ON \
-                -DBRLS_UNITY_BUILD=${{ github.event.inputs.disable_unity_build == 'true' && 'OFF' || 'ON' }} \
-                -DCMAKE_UNITY_BUILD_BATCH_SIZE=16 && \
+                -DBRLS_UNITY_BUILD=OFF \
+                -DVERSION_BUILD=${{ github.run_number }}
                 make -C cmake-build-ps4 -j$(nproc)"
 
       - name: Upload dist
         uses: actions/upload-artifact@v6
         with:
-          name: ${{ needs.version.outputs.DIST_PS4 }}
-          path: "cmake-build-ps4/*.pkg"
+          name: wiliwili-PS4-${{ github.run_number }}
+          path: cmake-build-ps4/*.pkg
 
       - name: Upload oelf
         uses: actions/upload-artifact@v6
         with:
           name: ps4_dev_oelf
-          path: "cmake-build-ps4/*.oelf"
+          path: cmake-build-ps4/*.oelf
 
   build-macos:
-    needs: [ version ]
-    runs-on: macos-14
+    runs-on: macos-latest
     strategy:
       matrix:
-        include:
-          - { arch: IntelChip, name: IntelChip }
-          - { arch: IntelChip_Old, name: IntelChip_10.11 }
-          - { arch: AppleSilicon, name: AppleSilicon }
-          - { arch: Universal, name: Universal }
+        arch: [ IntelChip, AppleSilicon ]
       # Don't fail the whole workflow if one architecture fails
       fail-fast: false
     steps:
@@ -352,14 +253,13 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: recursive
-          fetch-depth: 0
+          fetch-depth: 2
+          fetch-tags: true
 
       - name: install deps
-        if: matrix.arch != 'Universal' || ( matrix.arch == 'Universal' && github.event.inputs.universal_macos == 'true')
         run: |
           brew install create-dmg dylibbundler
-          brew tap xfangfang/wiliwili
-          brew install -v mpv-wiliwili
+          curl -sSL https://github.com/dragonflylee/mpv-build/releases/download/macos-dylib/dylib-ffmpeg8-mpv41-${{ matrix.arch }}.tar.gz | tar zxf - -C ${{ runner.temp }}
 
       - name: SSH connection to Actions
         uses: P3TERX/ssh2actions@v1.0.0
@@ -369,34 +269,24 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
       - name: Update gamepad mappings
-        if: matrix.arch != 'Universal' || ( matrix.arch == 'Universal' && github.event.inputs.universal_macos == 'true')
         id: gamepad
         run: |
           BRLS_GLFW="library/borealis/library/lib/extern/glfw"
           cmake -P ${BRLS_GLFW}/CMake/GenerateMappings.cmake  ${BRLS_GLFW}/src/mappings.h.in  ${BRLS_GLFW}/src/mappings.h
 
       - name: Build
-        if: matrix.arch != 'Universal' || ( matrix.arch == 'Universal' && github.event.inputs.universal_macos == 'true')
-        id: compile
+        env:
+          DYLD_LIBRARY_PATH: ${{ runner.temp }}/lib
         run: |
-          cmake -B build \
+          cmake -B build -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=${{ runner.temp }} \
             -DPLATFORM_DESKTOP=ON \
-            -DCMAKE_BUILD_TYPE=Release \
             -DMAC_${{ matrix.arch }}=ON \
-            -DMAC_DOWNLOAD_DYLIB=ON \
-            -DBRLS_UNITY_BUILD=${{ github.event.inputs.disable_unity_build == 'true' && 'OFF' || 'ON' }} \
-            -DCMAKE_UNITY_BUILD_BATCH_SIZE=16
-          make -C build wiliwili.app -j$(sysctl -n hw.ncpu)
-
-      - name: Name
-        if: matrix.arch != 'Universal' || ( matrix.arch == 'Universal' && github.event.inputs.universal_macos == 'true')
-        id: name
-        run: |
-          echo "DMG=${{ needs.version.outputs.DIST_DMG_PREFIX }}-${{ matrix.name }}-${{ needs.version.outputs.version }}"  >> $GITHUB_OUTPUT
+            -DBRLS_UNITY_BUILD=OFF \
+            -DVERSION_BUILD=${{ github.run_number }}
+          make -C build -j$(sysctl -n hw.ncpu)
 
       - name: Bundle
-        if: matrix.arch != 'Universal' || ( matrix.arch == 'Universal' && github.event.inputs.universal_macos == 'true')
-        id: bundle
         run: |
           mkdir -p dist
           mv build/wiliwili.app dist/
@@ -405,17 +295,16 @@ jobs:
             --icon-size 100 --icon "wiliwili.app" 200 190 \
             --icon "readme.txt" 400 100 --hide-extension "wiliwili.app" \
             --app-drop-link 600 185  --volicon ./scripts/mac/dmg.icns \
-            --volname "wiliwili (${{ needs.version.outputs.version }})" ${{ steps.name.outputs.DMG }}.dmg "dist/"
+            --volname "wiliwili" wiliwili-macOS-${{ matrix.arch }}-${{ github.run_number }}.dmg "dist/"
 
       - name: Upload dist
         if: matrix.arch != 'Universal' || ( matrix.arch == 'Universal' && github.event.inputs.universal_macos == 'true')
         uses: actions/upload-artifact@v6
         with:
-          name: ${{ steps.name.outputs.DMG }}
-          path: "${{ steps.name.outputs.DMG }}.dmg"
+          name: wiliwili-macOS-${{ matrix.arch }}-${{ github.run_number }}
+          path: wiliwili-*.dmg
 
   build-flatpak:
-    needs: [ version ]
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
@@ -431,41 +320,27 @@ jobs:
       # Don't fail the whole workflow if one architecture fails
       fail-fast: false
     runs-on: ${{ matrix.runner }}
-    env:
-      FLATPAK_NAME: wiliwili-Linux-${{ needs.version.outputs.version }}.flatpak
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           submodules: recursive
-          fetch-depth: 0
+          fetch-depth: 2
+          fetch-tags: true
 
       - name: Add OpenGL ES 2.0 build option
         if: matrix.driver == 'gles2'
         run: |
           sed -i 's/USE_GLES2=OFF/USE_GLES2=ON/' .flatpak-manifest.yml
 
-      - name: Disable unity build
-        if: github.event.inputs.disable_unity_build == 'true'
-        run: |
-          sed -i 's/BRLS_UNITY_BUILD=ON/BRLS_UNITY_BUILD=OFF/' .flatpak-manifest.yml
-
-      - name: Rename package
-        if: matrix.arch == 'aarch64'
-        run: |
-          echo "FLATPAK_NAME=wiliwili-Linux-${{ needs.version.outputs.version }}-${{ matrix.driver }}.flatpak"  >> $GITHUB_ENV
-
       - name: Install deps
-        id: dep
         run: |
           BRLS_GLFW="library/borealis/library/lib/extern/glfw/"
           cmake -P ${BRLS_GLFW}/CMake/GenerateMappings.cmake  ${BRLS_GLFW}/src/mappings.h.in  ${BRLS_GLFW}/src/mappings.h
-          echo "FLATPAK_NAME=${FLATPAK_NAME}"  >> $GITHUB_OUTPUT
-          echo ${FLATPAK_NAME}
 
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.7
         with:
-          bundle: ${{ steps.dep.outputs.FLATPAK_NAME }}
+          bundle: wiliwili-Linux-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}.flatpak
           manifest-path: .flatpak-manifest.yml
           cache-key: flatpak-builder-${{ matrix.driver }}-${{ hashFiles('.flatpak-manifest.yml') }}
           verbose: true
@@ -474,12 +349,11 @@ jobs:
 
       - uses: actions/upload-artifact@v6
         with:
-          name: wiliwili-Linux-${{ needs.version.outputs.version }}-${{ matrix.arch }}-${{ matrix.driver }}
-          path: ${{ steps.dep.outputs.FLATPAK_NAME }}
+          name: wiliwili-Linux-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}
+          path: wiliwili-Linux-*.flatpak
           if-no-files-found: error
 
   build-vita:
-    needs: [ version ]
     name: build-psv
     runs-on: ubuntu-latest
     strategy:
@@ -494,21 +368,21 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: recursive
-          fetch-depth: 0
+          fetch-depth: 2
+          fetch-tags: true
 
       - name: Build wiliwili
         run: |
           docker run --rm -v $(pwd):/src/ xfangfang/wiliwili_psv_builder:${{ matrix.docker }} \
-            "cmake -B build -G Ninja -DPLATFORM_PSV=ON -DUSE_SYSTEM_CURL=ON -DCMAKE_UNITY_BUILD_BATCH_SIZE=16 \
-               -DBRLS_UNITY_BUILD=${{ github.event.inputs.disable_unity_build == 'true' && 'OFF' || 'ON' }} \
-               -DCMAKE_BUILD_TYPE=Release -DSIMPLE_HIGHLIGHT=ON ${{ matrix.cmake }} && \
+            "cmake -B build -G Ninja -DPLATFORM_PSV=ON -DUSE_SYSTEM_CURL=ON \
+               -DBRLS_UNITY_BUILD=OFF -DCMAKE_BUILD_TYPE=Release -DSIMPLE_HIGHLIGHT=ON ${{ matrix.cmake }} && \
              cmake --build build && \
              mv build/wiliwili.self build/eboot.bin"
 
       - name: Upload vpk
         uses: actions/upload-artifact@v6
         with:
-          name: wiliwili-PSVita-${{ needs.version.outputs.VERSION }}-${{ matrix.driver }}
+          name: wiliwili-PSVita-${{ matrix.driver }}-${{ github.run_number }}
           path: build/wiliwili.vpk
 
       - name: Upload eboot
