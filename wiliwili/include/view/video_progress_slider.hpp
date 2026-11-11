@@ -77,11 +77,8 @@ private:
     bool pointerSelected       = false;
     // while pointer is selected ignore progress setting
     bool ignoreProgressSetting = false;
-    // while pointer is selected, the last progress value set by setProgress()
-    // is stored here to be restored when canceling the selection
-    float lastProgress         = 1;
 
-    // pointer 被选中时, 上一次按钮按下时的进度值
+    // pointer 被选中时, 开始拖动或上一次按钮按下时的进度值
     float lastStartProgress  = 0;
     std::function <float(float)> progressUpdater{};
 

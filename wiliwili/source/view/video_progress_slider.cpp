@@ -81,8 +81,6 @@ VideoProgressSlider::VideoProgressSlider() {
         [this](brls::PanGestureStatus status, brls::Sound* soundToPlay) {
             brls::Application::giveFocus(pointer);
 
-            static float lastProgress = progress;
-
             if (status.state == brls::GestureState::UNSURE) {
                 *soundToPlay = brls::SOUND_FOCUS_CHANGE;
                 return;
@@ -94,13 +92,13 @@ VideoProgressSlider::VideoProgressSlider() {
             }
 
             else if (status.state == brls::GestureState::START) {
-                lastProgress = progress;
+                lastStartProgress = progress;
             }
 
             float paddingWidth = getWidth() - pointer->getWidth();
             float delta        = status.position.x - status.startPosition.x;
 
-            setProgress(lastProgress + delta / paddingWidth);
+            setProgress(lastStartProgress + delta / paddingWidth);
             progressEvent.fire(this->progress);
 
             if (status.state == brls::GestureState::END) {
@@ -121,8 +119,7 @@ VideoProgressSlider::VideoProgressSlider() {
             brls::Application::giveFocus(this->getParentActivity()->getContentView());
         }));
 
-    progress     = 0;
-    lastProgress = 0;
+    progress = 0;
 }
 
 brls::View* VideoProgressSlider::create() { return new VideoProgressSlider(); }
@@ -135,7 +132,6 @@ void VideoProgressSlider::onLayout() {
 brls::View* VideoProgressSlider::getDefaultFocus() { return pointer; }
 
 void VideoProgressSlider::setProgress(float progress) {
-    lastProgress = progress;
     if (ignoreProgressSetting) return;
 
     this->progress = progress;
@@ -249,7 +245,8 @@ bool VideoProgressSlider::cancelPointerChange() {
     pointerSelected       = false;
     ignoreProgressSetting = false;
     pointer->setHideHighlightBackground(true);
-    this->progress = lastProgress;
+    // 恢复到开始拖动前的进度
+    this->progress = lastStartProgress;
     if (this->progress < 0) this->progress = 0;
     if (this->progress > 1) this->progress = 1;
     updateUI();
