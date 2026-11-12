@@ -203,17 +203,12 @@ void ImageHelper::requestImage() {
     brls::Logger::verbose("request Image 2: {} {}", this->imageUrl, this->isCancel);
 
     // 请求图片
-    cpr::Session session;
-    CURL* curl = session.GetCurlHolder()->handle;
+    auto session = bilibili::HTTP::createSession();
+    CURL* curl = session->GetCurlHolder()->handle;
     curl_easy_setopt(curl, CURLOPT_SHARE, ImageThreadPool::instance().getShare());
-    curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, bilibili::HTTP::DNS_CACHE_TIMEOUT);
-    session.SetTimeout(cpr::Timeout{bilibili::HTTP::TIMEOUT});
-    session.SetConnectTimeout(cpr::ConnectTimeout{bilibili::HTTP::CONNECTION_TIMEOUT});
-    session.SetVerifySsl(bilibili::HTTP::VERIFY);
-    session.SetProxies(bilibili::HTTP::PROXIES);
-    session.SetUrl(cpr::Url{this->imageUrl});
-    session.SetProgressCallback(cpr::ProgressCallback([this](...) -> bool { return !this->isCancel; }));
-    cpr::Response r = session.Get();
+    session->SetUrl(cpr::Url{this->imageUrl});
+    session->SetProgressCallback(cpr::ProgressCallback([this](...) -> bool { return !this->isCancel; }));
+    cpr::Response r = session->Get();
 
     // 图片请求失败或取消请求
     if (r.status_code != 200 || r.downloaded_bytes == 0 || this->isCancel) {
