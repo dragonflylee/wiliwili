@@ -53,7 +53,7 @@ public:
     void startRotate() {
         angle.stop();
         angle.reset(0);
-        angle.addStep(NVG_PI * 4, 600, brls::EasingFunction::quadraticOut);
+        angle.addStep(NVG_PI * 4, 600, tweeny::easing::quadraticOut);
         angle.setTickCallback([this] { this->refreshIcon->rotate(this->angle); });
         angle.start();
     }

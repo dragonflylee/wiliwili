@@ -311,7 +311,7 @@ void PlayerSingleComment::showStartAnimation(float y) {
     brls::Application::blockInputs();
     this->position.stop();
     this->position.reset(commentOriginalPosition);
-    this->position.addStep(60, 300, brls::EasingFunction::quadraticOut);
+    this->position.addStep(60, 300, tweeny::easing::quadraticOut);
     this->position.setTickCallback([this] {
         this->backgroundBox->setPositionTop(this->position - 60);
         float alpha = 1 - fabs((this->position - 60) / commentOriginalPosition);
@@ -333,7 +333,7 @@ void PlayerSingleComment::showDismissAnimation() {
     brls::Application::blockInputs();
     this->position.stop();
     this->position.reset(0);
-    this->position.addStep(animationLength, 300, brls::EasingFunction::quadraticIn);
+    this->position.addStep(animationLength, 300, tweeny::easing::quadraticIn);
     this->position.setTickCallback([this, animationLength] {
         this->backgroundBox->setPositionTop(this->position);
         float alpha = 1 - fabs(this->position / animationLength);
@@ -498,7 +498,7 @@ void PlayerCommentAction::showStartAnimation() {
     brls::Application::blockInputs();
     this->position.stop();
     this->position.reset(commentOriginalPosition);
-    this->position.addStep(60, 200, brls::EasingFunction::quadraticOut);
+    this->position.addStep(60, 200, tweeny::easing::quadraticOut);
     this->position.setEndCallback([](bool finished) { brls::Application::unblockInputs(); });
     this->position.start();
 }
@@ -512,7 +512,7 @@ void PlayerCommentAction::showDismissAnimation() {
     brls::Application::blockInputs();
     this->position.stop();
     this->position.reset(60);
-    this->position.addStep(commentOriginalPosition, 200, brls::EasingFunction::quadraticIn);
+    this->position.addStep(commentOriginalPosition, 200, tweeny::easing::quadraticIn);
     this->position.setEndCallback([](bool finished) {
         brls::Application::unblockInputs();
         brls::Application::popActivity(brls::TransitionAnimation::NONE);

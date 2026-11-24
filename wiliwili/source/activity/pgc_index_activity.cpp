@@ -232,12 +232,12 @@ public:
 
     void open(std::function<void()> cb = nullptr) {
         contentOffsetY.reset(-720.0f);
-        this->startScrolling(0.0, 300, brls::EasingFunction::quadraticOut, cb);
+        this->startScrolling(0.0, 300, tweeny::easing::quadraticOut, cb);
     }
 
     void close(std::function<void()> cb = nullptr) {
         contentOffsetY.reset(0.0f);
-        this->startScrolling(-720.0, 200, brls::EasingFunction::quadraticOut, cb);
+        this->startScrolling(-720.0, 200, tweeny::easing::quadraticOut, cb);
     }
 
     UserRequestData getData() {
@@ -294,7 +294,7 @@ public:
     IndexChangeEvent* getIndexChangeEvent() { return &this->event; }
 
     void startScrolling(float newScroll, float time = 300,
-                        brls::EasingFunction func   = brls::EasingFunction::quadraticOut,
+                        brls::EasingFunction func   = tweeny::easing::quadraticOut,
                         std::function<void()> cb    = nullptr) {
         if (newScroll == this->contentOffsetY) return;
 
@@ -524,7 +524,7 @@ void PGCIndexActivity::startAnimation(float a) {
     brls::Application::blockInputs();
     this->alpha.stop();
     this->alpha.reset();
-    this->alpha.addStep(a, 300, brls::EasingFunction::quadraticOut);
+    this->alpha.addStep(a, 300, tweeny::easing::quadraticOut);
     this->alpha.setTickCallback([this] { this->setAlpha(this->alpha); });
     this->alpha.setEndCallback([](bool finished) { brls::Application::unblockInputs(); });
     this->alpha.start();

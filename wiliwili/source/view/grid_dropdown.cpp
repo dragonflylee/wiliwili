@@ -16,7 +16,7 @@ void EmptyDropdown::show(std::function<void(void)> cb, bool animate, float anima
 
         showOffset.stop();
         showOffset.reset(30.0f);
-        showOffset.addStep(0, animationDuration, brls::EasingFunction::quadraticOut);
+        showOffset.addStep(0, animationDuration, tweeny::easing::quadraticOut);
         showOffset.setTickCallback([this] { this->offsetTick(); });
         showOffset.start();
     }
@@ -29,7 +29,7 @@ void EmptyDropdown::show(std::function<void(void)> cb, bool animate, float anima
 
         applet->alpha.stop();
         applet->alpha.reset(0);
-        applet->alpha.addStep(1, animationDuration, brls::EasingFunction::quadraticOut);
+        applet->alpha.addStep(1, animationDuration, tweeny::easing::quadraticOut);
         applet->alpha.start();
     }
 }
@@ -41,7 +41,7 @@ void EmptyDropdown::hide(std::function<void(void)> cb, bool animated, float anim
 
         applet->alpha.stop();
         applet->alpha.reset(1);
-        applet->alpha.addStep(0, animationDuration, brls::EasingFunction::quadraticOut);
+        applet->alpha.addStep(0, animationDuration, tweeny::easing::quadraticOut);
         applet->alpha.start();
     }
 

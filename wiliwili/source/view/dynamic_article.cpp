@@ -162,7 +162,7 @@ public:
         brls::Application::blockInputs();
         this->position.stop();
         this->position.reset(commentOriginalPosition);
-        this->position.addStep(defaultPosition, 300, brls::EasingFunction::quadraticOut);
+        this->position.addStep(defaultPosition, 300, tweeny::easing::quadraticOut);
         this->position.setEndCallback([](bool finished) { brls::Application::unblockInputs(); });
         this->position.start();
     }
@@ -176,7 +176,7 @@ public:
         brls::Application::blockInputs();
         this->position.stop();
         this->position.reset(defaultPosition);
-        this->position.addStep(commentOriginalPosition, 300, brls::EasingFunction::quadraticIn);
+        this->position.addStep(commentOriginalPosition, 300, tweeny::easing::quadraticIn);
         this->position.setEndCallback([](bool finished) {
             brls::Application::unblockInputs();
             brls::Application::popActivity(brls::TransitionAnimation::NONE);
