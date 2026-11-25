@@ -7,6 +7,7 @@
 #include <functional>
 #include <nlohmann/json.hpp>
 #include <cpr/cpr.h>
+#include <cpr/multiperform.h>
 
 #include "bilibili/util/md5.hpp"
 #include "bilibili/util/json.hpp"
@@ -28,41 +29,6 @@ using ErrorCallback = std::function<void(const std::string&, int code)>;
 #define HTTP_CALLBACK(data) \
     if (callback) callback(data)
 
-class CurlSharedObject {
-public:
-    CurlSharedObject() {
-        share = curl_share_init();
-        curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
-        // TODO: 下列两个选线不支持多线程，需要实现自定义线程池，每个线程共享一个 curl share 对象
-        // curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_SSL_SESSION);
-        // curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_CONNECT);
-        curl_share_setopt(share, CURLSHOPT_LOCKFUNC, lock_callback);
-        curl_share_setopt(share, CURLSHOPT_UNLOCKFUNC, unlock_callback);
-        curl_share_setopt(share, CURLSHOPT_USERDATA, lock_array);
-    }
-    ~CurlSharedObject() {
-        curl_share_cleanup(share);
-    }
-
-    static void lock_callback(CURL *handle, curl_lock_data data, curl_lock_access access, void *userptr) {
-        auto *lock_array = (std::recursive_mutex *)userptr;
-        lock_array[data].lock();
-    }
-
-    static void unlock_callback(CURL *handle, curl_lock_data data, void *userptr) {
-        auto *lock_array = (std::recursive_mutex *)userptr;
-        lock_array[data].unlock();
-    }
-
-    CURLSH* getShare() {
-        return share;
-    }
-
-private:
-    CURLSH* share;
-    std::recursive_mutex lock_array[CURL_LOCK_DATA_LAST];
-};
-
 class HTTP {
 public:
     static inline cpr::Cookies COOKIES = {false};
@@ -77,14 +43,34 @@ public:
     static inline cpr::Proxies PROXIES;
     static inline cpr::VerifySsl VERIFY;
     static inline std::string PROTOCOL = "https:";
-    static inline CurlSharedObject CURL_SHARE;
+
+    static CURLM* threadMulti();
+
+    static void cleanupThread();
+
+    static cpr::Response perform(cpr::Session& session, cpr::MultiPerform::HttpMethod method);
+
+    static void getAsync(std::shared_ptr<cpr::Session> session, const std::function<void(const cpr::Response&)>& then) {
+        if (!session) return;
+        cpr::async([session, then]() {
+            const cpr::Response r = perform(*session, cpr::MultiPerform::HttpMethod::GET_REQUEST);
+            if (then) then(r);
+        });
+    }
+
+    static void postAsync(std::shared_ptr<cpr::Session> session, const std::function<void(const cpr::Response&)>& then) {
+        if (!session) return;
+        cpr::async([session, then]() {
+            const cpr::Response r = perform(*session, cpr::MultiPerform::HttpMethod::POST_REQUEST);
+            if (then) then(r);
+        });
+    }
 
     static std::string getEncodedCookie(const cpr::Cookies& cookies);
 
     static std::shared_ptr<cpr::Session> createSession() {
         auto session = std::make_shared<cpr::Session>();
         CURL* curl = session->GetCurlHolder()->handle;
-        curl_easy_setopt(curl, CURLOPT_SHARE, HTTP::CURL_SHARE.getShare());
         curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, HTTP::DNS_CACHE_TIMEOUT);
         session->SetTimeout(cpr::Timeout{bilibili::HTTP::TIMEOUT});
         session->SetConnectTimeout(cpr::ConnectTimeout{bilibili::HTTP::CONNECTION_TIMEOUT});
@@ -98,43 +84,43 @@ public:
                            const cpr::Payload& payload                               = {},
                            const std::function<void(const cpr::Response&)>& callback = nullptr,
                            const ErrorCallback& error                                = nullptr) {
-        auto session = createSession();;
+        auto session = createSession();
         session->SetUrl(cpr::Url{parseLink(url)});
         session->SetParameters(parameters);
         session->SetPayload(payload);
 
-        session->PostCallback(
-            [callback, error](const cpr::Response& r) {
-                if (r.error) {
-                    ERROR_MSG(r.error.message, -1);
-                    return;
-                } else if (r.status_code != 200) {
-                    ERROR_MSG("Network error. [Status code: " + std::to_string(r.status_code) + " ]", r.status_code);
-                    return;
-                }
-                callback(r);
-            });
+        cpr::async([session, callback, error]() {
+            const cpr::Response r = perform(*session, cpr::MultiPerform::HttpMethod::POST_REQUEST);
+            if (r.error) {
+                ERROR_MSG(r.error.message, -1);
+                return;
+            } else if (r.status_code != 200) {
+                ERROR_MSG("Network error. [Status code: " + std::to_string(r.status_code) + " ]", r.status_code);
+                return;
+            }
+            if (callback) callback(r);
+        });
     }
 
     static void _cpr_get(const std::string& url, const cpr::Parameters& parameters = {},
-                          const std::function<void(const cpr::Response&)>& callback = nullptr,
-                          const ErrorCallback& error                                = nullptr) {
-        auto session = createSession();;
+                         const std::function<void(const cpr::Response&)>& callback = nullptr,
+                         const ErrorCallback& error                               = nullptr) {
+        auto session = createSession();
         session->SetUrl(cpr::Url{parseLink(url)});
         session->SetParameters(parameters);
 
-        session->GetCallback(
-            [callback, error](const cpr::Response& r) {
-                if (r.error) {
-                    ERROR_MSG(r.error.message, -1);
-                    return;
-                }
-                if (r.status_code != 200) {
-                    ERROR_MSG("Network error. [Status code: " + std::to_string(r.status_code) + " ]", r.status_code);
-                    return;
-                }
-                callback(r);
-            });
+        cpr::async([session, callback, error]() {
+            const cpr::Response r = perform(*session, cpr::MultiPerform::HttpMethod::GET_REQUEST);
+            if (r.error) {
+                ERROR_MSG(r.error.message, -1);
+                return;
+            }
+            if (r.status_code != 200) {
+                ERROR_MSG("Network error. [Status code: " + std::to_string(r.status_code) + " ]", r.status_code);
+                return;
+            }
+            if (callback) callback(r);
+        });
     }
 
     template <typename ReturnType>

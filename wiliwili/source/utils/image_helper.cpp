@@ -106,13 +106,6 @@ public:
     }
 
     ~ImageThreadPool() override { this->Stop(); }
-
-    CURLSH* getShare() {
-        return share.getShare();
-    }
-
-private:
-    bilibili::CurlSharedObject share;
 };
 
 ImageHelper::ImageHelper(brls::Image* view) : imageView(view) {}
@@ -204,11 +197,9 @@ void ImageHelper::requestImage() {
 
     // 请求图片
     auto session = bilibili::HTTP::createSession();
-    CURL* curl = session->GetCurlHolder()->handle;
-    curl_easy_setopt(curl, CURLOPT_SHARE, ImageThreadPool::instance().getShare());
     session->SetUrl(cpr::Url{this->imageUrl});
     session->SetProgressCallback(cpr::ProgressCallback([this](...) -> bool { return !this->isCancel; }));
-    cpr::Response r = session->Get();
+    cpr::Response r = bilibili::HTTP::perform(*session, cpr::MultiPerform::HttpMethod::GET_REQUEST);
 
     // 图片请求失败或取消请求
     if (r.status_code != 200 || r.downloaded_bytes == 0 || this->isCancel) {

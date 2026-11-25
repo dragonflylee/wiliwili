@@ -56,7 +56,7 @@ void BilibiliClient::get_webmask(const std::string& url, int64_t rangeStart, int
     auto session = HTTP::createSession();
     session->SetRange(cpr::Range{start, end});
     session->SetUrl(cpr::Url{url});
-    session->GetCallback<>(
+    HTTP::getAsync(session,
         [callback, error](const cpr::Response& r) {
             try {
                 callback(r.text);
@@ -296,7 +296,7 @@ void BilibiliClient::get_danmaku(uint64_t cid, const std::function<void(std::str
     auto session = HTTP::createSession();
     session->SetUrl(cpr::Url{HTTP::PROTOCOL + Api::VideoDanmaku});
     session->SetParameters(cpr::Parameters({{"oid", std::to_string(cid)}}));
-    session->GetCallback<>(
+    HTTP::getAsync(session,
         [callback, error](const cpr::Response& r) {
             if (r.status_code != 200) {
                 ERROR_MSG(r.error.message, r.status_code);
@@ -316,7 +316,7 @@ void BilibiliClient::get_highlight_progress(uint64_t cid,
     auto session = HTTP::createSession();
     session->SetUrl(cpr::Url{HTTP::PROTOCOL + Api::VideoHighlight});
     session->SetParameters(cpr::Parameters({{"cid", std::to_string(cid)}}));
-    session->GetCallback<>(
+    HTTP::getAsync(session,
         [callback, error](const cpr::Response& r) {
             if (r.status_code != 200) {
                 ERROR_MSG(r.error.message, r.status_code);
@@ -341,7 +341,7 @@ void BilibiliClient::get_video_snapshot(const std::string& bvid, uint64_t cid,
         {"cid", std::to_string(cid)},
         {"index", "1"},
     }));
-    session->GetCallback<>(
+    HTTP::getAsync(session,
         [callback, error](const cpr::Response& r) {
             if (r.status_code != 200) {
                 ERROR_MSG(r.error.message, r.status_code);
@@ -364,7 +364,7 @@ void BilibiliClient::get_subtitle(const std::string& link, const std::function<v
                                   const ErrorCallback& error) {
     auto session = HTTP::createSession();
     session->SetUrl(cpr::Url{link});
-    session->GetCallback<>(
+    HTTP::getAsync(session,
         [callback, error](const cpr::Response& r) {
             try {
                 nlohmann::json res = nlohmann::json::parse(r.text);

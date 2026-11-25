@@ -75,7 +75,7 @@ void updateWbiKeys(const std::function<void()>& success, const ErrorCallback& er
 
     auto session = HTTP::createSession();
     session->SetUrl(cpr::Url{parseLink(Api::Nav)});
-    session->GetCallback([success, error, now](const cpr::Response& r) {
+    HTTP::getAsync(session, [success, error, now](const cpr::Response& r) {
         if (r.status_code != 200) {
             ERROR_MSG("WBI签名获取失败", -412);
             return;

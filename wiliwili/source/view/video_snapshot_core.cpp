@@ -82,7 +82,7 @@ void VideoSnapshotCore::loadTexture(size_t index) {
     // Use cpr async callback to avoid std::thread + detach
     auto session = bilibili::HTTP::createSession();
     session->SetUrl(cpr::Url{url});
-    session->GetCallback([this, gen, index, url](const cpr::Response& r) {
+    bilibili::HTTP::getAsync(session, [this, gen, index, url](const cpr::Response& r) {
         if (r.status_code != 200 || r.text.empty()) {
             brls::Logger::error("[Snapshot] HTTP failed: index={} url={} status={} size={}", index, url, r.status_code, r.text.size());
             brls::sync([this, gen, index]() {

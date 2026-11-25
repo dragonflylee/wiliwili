@@ -24,6 +24,7 @@
 #include "utils/thread_helper.hpp"
 #include "utils/image_helper.hpp"
 #include "utils/config_helper.hpp"
+#include "bilibili/util/http.hpp"
 
 #include "pystring.h"
 #include "utils/crash_helper.hpp"
@@ -1184,6 +1185,7 @@ std::string ProgramConfig::getConfigDir() {
 
 void ProgramConfig::exit(char* argv[]) {
     cpr::async::cleanup();
+    bilibili::HTTP::cleanupThread();
     curl_global_cleanup();
 
 #ifdef _WIN32

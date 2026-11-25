@@ -31,7 +31,7 @@ static void to_url(int room_id, std::vector<std::string> &names, std::vector<std
     });
 
     // 执行请求
-    auto r = session->Get();
+    auto r = bilibili::HTTP::perform(*session, cpr::MultiPerform::HttpMethod::GET_REQUEST);
     
     if (r.status_code != 200) {
         brls::Logger::error("下载表情列表失败: room_id={}, 状态码: {}", room_id, r.status_code);

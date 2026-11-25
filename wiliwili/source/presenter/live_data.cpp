@@ -167,7 +167,7 @@ void LiveDataRequest::requestLiveAnchorTitle(int roomid) {
     session->SetUrl(url);
     session->SetParameters(params);
     
-    session->GetCallback<>(
+    bilibili::HTTP::getAsync(session,
         [ASYNC_TOKEN](const cpr::Response& r) {
             if (r.status_code == 200) {
                 try {

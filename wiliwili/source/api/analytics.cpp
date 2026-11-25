@@ -73,7 +73,7 @@ void Analytics::send() {
     });
     session->SetCookies(cpr::Cookies{{"_ga", client_id}});
     session->SetBody(cpr::Body{content_str});
-    session->PostCallback([](const cpr::Response& r) {
+    bilibili::HTTP::postAsync(session, [](const cpr::Response& r) {
         if (r.status_code != 204) {
             brls::Logger::error("report event error: {} {}", r.status_code, r.error.message);
         }
